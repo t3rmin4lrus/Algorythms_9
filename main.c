@@ -1,162 +1,117 @@
 #include <stdio.h>
 
-#define SIZE 10
+#define LINE_SIZE 101
+#define SIZE_STACK 101
+#define MAX_NUMBER_LEN 72
 #define T char
-#define ST_SIZE 100
-#define MAX_LEN 64
 
-T stack[ST_SIZE];
+typedef struct {
+ int prior;
+ T data;
+} Node;
+
+Node *line[LINE_SIZE];
+int line_ptr = -1;
+T stack[SIZE_STACK];
 int stack_ptr = -1;
+
+void my_queue(T data, int prior)
+{
+        if (line_ptr < LINE_SIZE) {
+                Node *node = (Node *)malloc(sizeof(Node));
+                node->data = data;
+                node->prior = prior;
+                line[++line_ptr] = node;
+        } else {
+                printf("Queue overflow!\n");
+        }
+}
+
+Node *my_enqueue(void)
+{
+        if (line_ptr < 0) {
+                return NULL;
+                printf("Queue is empty\n");
+        }
+        int max_prior_node_idx = 0;
+        for (int i = 0; i <= line_ptr; i++) {
+                if (line[i]->prior > line[max_prior_node_idx]->prior) {
+                        max_prior_node_idx = i;
+                }
+        }
+        Node *max_prior_node = line[max_prior_node_idx];
+        line_ptr--;
+        for (int i = max_prior_node_idx; i <= line_ptr; i++)
+                line[i] = line[i + 1];
+        return max_prior_node;
+}
+
+void print_line(void)
+{
+        for (int i = 0; i <= line_ptr; i++)
+                printf("(%c, %d) ", line[i]->data, line[i]->prior);
+        printf("\n");
+}
 
 void push(T data)
 {
-        if (stack_ptr < ST_SIZE)
+        if (stack_ptr < SIZE_STACK)
                 stack[++stack_ptr] = data;
         else
-                fprintf(stderr, "Stack overflow!\n");
+                fprintf(stderr,"Stack overflow!\n");
 }
 
 T pop()
 {
-        if (stack_ptr) {
+        if (stack_ptr >= 0) {
                 return stack[stack_ptr--];
         } else {
                 return -1;
-                fprintf(stderr, "Stack is empty!\n");
+                printf( "Stack is empty!\n");
         }
 }
 
-void conversion_to_Bin(unsigned int numb, char *numb_buf)
+void toBin(unsigned int number, char *buffer)
 {
         do {
-                push((numb % 2) ? '1' : '0');
-        } while (numb /= 2);
+                push((number % 2) ? '1' : '0');
+        } while (number /= 2);
 
         int i;
-        for (i = 0; stack_ptr >= 0 && i < (MAX_LEN - 1); i++)
-                numb_buf[i] = pop();
-        numb_buf[++i] = '\0';
+        for (i = 0; stack_ptr >= 0 && i < (MAX_NUMBER_LEN - 1); i++)
+                buffer[i] = pop();
+        buffer[++i] = '\0';
 }
 
-typedef struct {
-int pr;
-int dat;
-} Node;
-
-Node* arr[SIZE];
-int head;
-int tail;
-int items;
-
-void init(){
-    for (int i = 0; i < SIZE;++i){
-    arr[i] = NULL;
-    }
-    head = 0;
-    tail = 0;
-    items = 0;
-}
-
-void insert(int pr, int dat) {
-    Node *node = (Node*) malloc (sizeof(Node));
-    node->dat = dat;
-    node->pr = pr;
-    int flags;
-
-    if (items == 0) {
-        arr[tail++] = node;
-        items++;
-    } else if (items = SIZE) {
-        printf("%s \n", "Queue is full");
-        return;
-    } else {
-        int i = 0;
-        int idx = 0;
-        Node *tmp;
-        for (i = head; i < tail; ++i) {
-             idx = i % SIZE;
-             if (arr[idx]->pr > pr)
-                break;
-             else
-                idx++;
-      }
-      flags = idx % SIZE;
-      i++;
-      while (i <= tail) {
-          idx = i % SIZE;
-          tmp = arr[idx];
-          arr[idx] = arr[flags];
-          arr[flags] = tmp;
-          i++;
-      }
-      arr[flags] = node;
-      items++;
-      tail++;
-    }
-}
-
-Node* rm(){
-    if(items ==0){
-        return NULL;
-    } else {
-         int idx = head++ % SIZE;
-         Node *tmp = arr[idx];
-         arr[idx] = NULL;
-         items--;
-         return tmp;
-    }
-}
-
-void printed_Queue() {
-    printf("[ ");
-    for (int i = 0; i < SIZE; ++i) {
-        if (arr[i] == NULL)
-            printf("[*, *] ");
-        else
-            printf("[%d, %d] ", arr[i]->pr, arr[i]->dat);
-    }
-    printf(" ]\n");
-}
-
-int main(const int argc, const char **argv)
+int main()
 {
-    init();
-    insert(1, 11);
-    insert(3, 22);
-    insert(4, 33);
-    insert(2, 44);
-    insert(3, 55);
-    insert(4, 66);
-    insert(5, 77);
-    insert(1, 88);
-    insert(2, 99);
-    insert(6, 100);
-    printed_Queue();
+        printf("Queue with priority exception:\n");
 
-    for (int i = 0; i < 7; ++i) {
-        Node* n = rm();
-        printf("pr=%d, dat=%d \n", n->pr, n->dat);
-    }
-    printed_Queue();
+        for (int i = 0; i < LINE_SIZE; i++)
+                line[i] = NULL;
 
-    insert(1, 110);
-    insert(3, 120);
-    insert(6, 130);
-    printed_Queue();
+        my_queue('O',1);
+        my_queue('D',0);
+        my_queue('L',2);
+        my_queue('B',3);
+        my_queue('O',1);
+        print_line();
 
+        for (int i = 0; line[i] != NULL; i++) {
+                printf("%c", my_enqueue()->data);
+        }
+        printf("\n");
 
-    char numb_buf[MAX_LEN];
-    unsigned int x = 250;
-    unsigned int y = 652;
+        printf("Binary representation of a numbers:\n");
+        char buffer[MAX_NUMBER_LEN];
+        unsigned int x = 235;
+        unsigned int y = 368;
 
-       numb_buf[0] = '\0';
-        conversion_to_Bin(x, numb_buf);
-        printf("%u in binary is %s\n", x, numb_buf);
+        buffer[0] = '\0';
+        toBin(x, buffer);
+        printf("%u Numbers in binary representation: %s\n", x, buffer);
 
-        numb_buf[0] = '\0';
-        conversion_to_Bin(y, numb_buf);
-        printf("%u in binary is %s\n", y, numb_buf);
-
-	return 0;
+        buffer[0] = '\0';
+        toBin(y, buffer);
+        printf("%u Numbers in binary representation: %s\n", y, buffer);
 }
-
